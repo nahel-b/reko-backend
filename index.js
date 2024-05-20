@@ -1,12 +1,13 @@
 const express = require('express');
 const session = require('express-session');
+const request = require('request');
 
 const apiRoutes = require('./api');
 require('dotenv').config();
 const { connectToDatabase } = require('./database');
 
 
-const app = express();
+const app = express(); 
 const port = process.env.PORT || 3000;
 
 
