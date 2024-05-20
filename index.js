@@ -57,8 +57,8 @@ app.get('/spotifycallback', async (req, res) => {
       const { access_token } = JSON.parse(body);
       console.log("access_token",access_token);
       // Redirect back to the mobile app with the token
-      console.log(`${MOBILE_APP_REDIRECT_URI}?access_token=${access_token}`);
-      res.redirect(`${MOBILE_APP_REDIRECT_URI}?access_token=${access_token}`);
+      console.log(`aaa?access_token=${access_token}`);
+      res.redirect(`aaa?access_token=${access_token}`);
     });
   } catch (error) {
     console.error('Error getting Spotify token:', error);
