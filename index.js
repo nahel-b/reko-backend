@@ -103,6 +103,7 @@ app.get('/deezercallback', async (req, res) => {
       }
       else {
         console.error('Error getting Deezer token:', error);
+        console.error('Error getting Deezer token:', response);
         return res.status(500).send('Internal Server Error');
       }
       });
