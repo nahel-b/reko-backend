@@ -28,11 +28,14 @@ app.get('/', (req, res) => {
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const REDIRECT_SPOTIFY_URI = 'https://reko-backend.onrender.com/spotifycallback';
-const MOBILE_APP_REDIRECT_URI = 'exp://172.20.10.7:8081/--/callback';
+const REDIRECT_SPOTIFY_URI = process.env.BACKEND_URL +  '/spotifycallback';
+//https://reko-backend.onrender.com/spotifycallback
+// https://reko-backend-production.up.railway.app
 
 
 app.get('/spotifycallback', async (req, res) => {
+
+  console.log("red_URI",REDIRECT_SPOTIFY_URI);
   const code = req.query.code;
   if (!code) {
     return res.status(400).send('Code is missing');
@@ -66,7 +69,6 @@ app.get('/spotifycallback', async (req, res) => {
 
 const DEEZER_CLIENT_ID = process.env.DEEZER_CLIENT_ID;
 const DEEZER_CLIENT_SECRET = process.env.DEEZER_CLIENT_SECRET;
-const REDIRECT_DEEZER_URI = 'https://reko-backend.onrender.com/deezercallback';
 
 
 app.get('/deezercallback', async (req, res) => {

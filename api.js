@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const database = require("./database.js");
 const spotify_serveur = require("./musique/spotify_serveur.js");
+const spotify_client = require("./musique/spotify_client.js");
+const deezer_client = require("./musique/deezer_client.js");
 
 const { login, signup,authMiddleware } = require("./authController.js");
 
@@ -48,7 +50,27 @@ router.get("/recherche", async (req, res) => {
   }
 });
 
+router.get("/user_playlist", async (req, res) => {
 
+  const plateform = req.query.plateform;
+  const token = req.query.token;
+  const refresh_token = req.query.refresh_token;
+
+  console.log("plateform", plateform,"token", token,"refresh", refresh_token);
+
+  if ( !plateform || !token || (plateform == "Spotify" && !refresh_token) ) {
+    res.json(-1);
+  } else if(plateform == "Spotify"){
+    //const donnee = await spotify_client.get_user_playlist(
+    if(donnee == -1){
+      return res.json([]);
+    }
+    return res.json(donnee);
+
+
+  }
+
+});
 
 
 module.exports = router;
