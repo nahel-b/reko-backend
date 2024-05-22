@@ -67,6 +67,7 @@ const DEEZER_CLIENT_ID = process.env.DEEZER_CLIENT_ID;
 const DEEZER_CLIENT_SECRET = process.env.DEEZER_CLIENT_SECRET;
 const REDIRECT_DEEZER_URI = 'https://reko-backend.onrender.com/deezercallback';
 
+
 app.get('/deezercallback', async (req, res) => {
   const code = req.query.code;
   if (!code) {
@@ -74,46 +75,72 @@ app.get('/deezercallback', async (req, res) => {
   }
 
   try {
-    // request.post({
-    //   url: 'https://connect.deezer.com/oauth/access_token.php',
-    //   form: {
-    //     app_id: DEEZER_CLIENT_ID,
-    //     secret: DEEZER_CLIENT_SECRET,
-    //     code,
-    //     output: 'json',
-    //   },
-    // }, (error, response, body) => {
-    //   if (error) {
-    //     console.error('Error getting Deezer token:', error);
-    //     return res.status(500).send('Internal Server Error');
-    //   }
-      
-    //   // console.log("body",response);
-    //   // const { access_token } = JSON.parse(body);
-    //   // Redirect back to the mobile app with the token
-    //   res.redirect(`null?access_token=${access_token}`);
-    // });
     request.get({
-      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${DEEZER_CLIENT_ID}&secret=${DEEZER_CLIENT_SECRET}&code=${code}`
+      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${DEEZER_CLIENT_ID}&secret=${DEEZER_CLIENT_SECRET}&code=${code}&output=json`
     }, (error, response, body) => {
       if (!error && response.statusCode === 200) {
-        console.log("body", body);
-        const access_token = body.slice(13).split('&')[0];
+        const jsonBody = JSON.parse(body);
+        const access_token = jsonBody.access_token;
         res.redirect(`null?access_token=${access_token}`);
-      }
-      else {
+      } else {
         console.error('Error getting Deezer token:', error);
-        console.error('Error getting Deezer token:', response);
+        console.error('Error getting Deezer token:', response && response.statusCode, body);
         return res.status(500).send('Internal Server Error');
       }
-      });
-
-
+    });
   } catch (error) {
     console.error('Error getting Deezer token:', error);
     res.status(500).send('Internal Server Error');
   }
 });
+
+// app.get('/deezercallback', async (req, res) => {
+//   const code = req.query.code;
+//   if (!code) {
+//     return res.status(400).send('Code is missing');
+//   }
+
+//   try {
+//     // request.post({
+//     //   url: 'https://connect.deezer.com/oauth/access_token.php',
+//     //   form: {
+//     //     app_id: DEEZER_CLIENT_ID,
+//     //     secret: DEEZER_CLIENT_SECRET,
+//     //     code,
+//     //     output: 'json',
+//     //   },
+//     // }, (error, response, body) => {
+//     //   if (error) {
+//     //     console.error('Error getting Deezer token:', error);
+//     //     return res.status(500).send('Internal Server Error');
+//     //   }
+      
+//     //   // console.log("body",response);
+//     //   // const { access_token } = JSON.parse(body);
+//     //   // Redirect back to the mobile app with the token
+//     //   res.redirect(`null?access_token=${access_token}`);
+//     // });
+//     request.get({
+//       url: `https://connect.deezer.com/oauth/access_token.php?app_id=${DEEZER_CLIENT_ID}&secret=${DEEZER_CLIENT_SECRET}&code=${code}`
+//     }, (error, response, body) => {
+//       if (!error && response.statusCode === 200) {
+//         console.log("body", body);
+//         const access_token = body.slice(13).split('&')[0];
+//         res.redirect(`null?access_token=${access_token}`);
+//       }
+//       else {
+//         console.error('Error getting Deezer token:', error);
+//         console.error('Error getting Deezer token:', response);
+//         return res.status(500).send('Internal Server Error');
+//       }
+//       });
+
+
+//   } catch (error) {
+//     console.error('Error getting Deezer token:', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
 
 
 app.use('/api', apiRoutes);
