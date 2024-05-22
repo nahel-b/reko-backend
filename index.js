@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const request = require('request');
+const axios = require('axios');
 
 const apiRoutes = require('./api');
 require('dotenv').config();
@@ -75,22 +76,30 @@ app.get('/deezercallback', async (req, res) => {
   }
 
   try {
-    request.get({
-      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${DEEZER_CLIENT_ID}&secret=${DEEZER_CLIENT_SECRET}&code=${code}&output=json`
-    }, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
-        const jsonBody = JSON.parse(body);
-        const access_token = jsonBody.access_token;
-        res.redirect(`null?access_token=${access_token}`);
-      } else {
-        console.error('Error getting Deezer token:', error);
-        console.error('Error getting Deezer token:', response && response.statusCode, body);
-        return res.status(500).send('Internal Server Error');
+    const response = await axios.get('https://connect.deezer.com/oauth/access_token.php', {
+      params: {
+        app_id: DEEZER_CLIENT_ID,
+        secret: DEEZER_CLIENT_SECRET,
+        code: code,
+        output: 'json'
       }
     });
+
+    if (response.status === 200 && response.data.access_token) {
+      const access_token = response.data.access_token;
+      res.redirect(`null?access_token=${access_token}`);
+    } else {
+      console.error('Error getting Deezer token:', response.status, response.data);
+      res.status(500).send('Internal Server Error');
+    }
   } catch (error) {
-    console.error('Error getting Deezer token:', error);
-    res.status(500).send('Internal Server Error');
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      res.status(error.response.status).send(error.response.data);
+    } else {
+      console.error('Error getting Deezer token:', error.message);
+      res.status(500).send('Internal Server Error');
+    }
   }
 });
 
