@@ -33,7 +33,6 @@ const MOBILE_APP_REDIRECT_URI = 'exp://172.20.10.7:8081/--/callback';
 
 app.get('/spotifycallback', async (req, res) => {
   const code = req.query.code;
-  console.log("code",code);
   if (!code) {
     return res.status(400).send('Code is missing');
   }
@@ -53,12 +52,9 @@ app.get('/spotifycallback', async (req, res) => {
         console.error('Error getting Spotify token:', error);
         return res.status(500).send('Internal Server Error');
       }
-      console.log("body",body);
-      const { access_token } = JSON.parse(body);
-      console.log("access_token",access_token);
+      const { access_token, refresh_token } = JSON.parse(body);
       // Redirect back to the mobile app with the token
-      console.log(`aaa?access_token=${access_token}`);
-      res.redirect(`aaa?access_token=${access_token}`);
+      res.redirect(`null?access_token=${access_token}&refresh_token=${refresh_token}`);
     });
   } catch (error) {
     console.error('Error getting Spotify token:', error);
