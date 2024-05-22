@@ -101,6 +101,10 @@ app.get('/deezercallback', async (req, res) => {
         const access_token = body.slice(13).split('&')[0];
         res.redirect(`null?access_token=${access_token}`);
       }
+      else {
+        console.error('Error getting Deezer token:', error);
+        return res.status(500).send('Internal Server Error');
+      }
       });
 
 
