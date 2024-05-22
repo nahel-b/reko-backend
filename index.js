@@ -76,6 +76,8 @@ app.get('/deezercallback', async (req, res) => {
   }
 
   try {
+    console.log("url",`https://connect.deezer.com/oauth/access_token.php?app_id=${DEEZER_CLIENT_ID}&secret=${DEEZER_CLIENT_SECRET}&code=${code}`);
+
     const response = await axios.get('https://connect.deezer.com/oauth/access_token.php', {
       params: {
         app_id: DEEZER_CLIENT_ID,
@@ -85,7 +87,6 @@ app.get('/deezercallback', async (req, res) => {
       }
     });
     //print url
-    console.log("url",`https://connect.deezer.com/oauth/access_token.php?app_id=${DEEZER_CLIENT_ID}&secret=${DEEZER_CLIENT_SECRET}&code=${code}`);
 
     if (response.status === 200 && response.data.access_token) {
       const access_token = response.data.access_token;
