@@ -87,7 +87,8 @@ app.get('/deezercallback', async (req, res) => {
         console.error('Error getting Deezer token:', error);
         return res.status(500).send('Internal Server Error');
       }
-      const { access_token, expires } = JSON.parse(body);
+      console.log("body",body);
+      const { access_token } = JSON.parse(body);
       // Redirect back to the mobile app with the token
       res.redirect(`null?access_token=${access_token}&expires=${expires}`);
     });
