@@ -62,6 +62,38 @@ app.get('/spotifycallback', async (req, res) => {
   }
 });
 
+
+app.get('/deezercallback', async (req, res) => {
+  const code = req.query.code;
+  if (!code) {
+    return res.status(400).send('Code is missing');
+  }
+
+  try {
+    request.post({
+      url: 'https://connect.deezer.com/oauth/access_token.php',
+      form: {
+        app_id: DEEZER_CLIENT_ID,
+        secret: DEEZER_CLIENT_SECRET,
+        code,
+        output: 'json',
+      },
+    }, (error, response, body) => {
+      if (error) {
+        console.error('Error getting Deezer token:', error);
+        return res.status(500).send('Internal Server Error');
+      }
+      const { access_token, expires } = JSON.parse(body);
+      // Redirect back to the mobile app with the token
+      res.redirect(`null?access_token=${access_token}&expires=${expires}`);
+    });
+  } catch (error) {
+    console.error('Error getting Deezer token:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
 app.use('/api', apiRoutes);
 
 
