@@ -1,37 +1,37 @@
-const request = require('request');
+const axios = require('axios');
 const database = require('../database.js');
 const { platform } = require('os');
 const spotify_client_id = process.env['SPOTIFY_CLIENT_ID']
 const spotify_client_secret = process.env['SPOTIFY_CLIENT_SECRET']
 
-async function refresh_user_spotify_token(token,refresh_token){
-
-  var authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    headers: {
-      'content-type': 'application/x-www-form-urlencoded',
-      'Authorization': 'Basic ' + (new Buffer.from(spotify_client_id + ':' + spotify_client_secret).toString('base64'))
-    },
-    form: {
+async function refresh_user_spotify_token(token, refresh_token) {
+  const url = 'https://accounts.spotify.com/api/token';
+  const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from(spotify_client_id + ':' + spotify_client_secret).toString('base64')
+  };
+  const data = new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refresh_token
-    },
-    json: true
-  };
+  });
 
   return new Promise((resolve, reject) => {
-  request.post(authOptions,async function(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      const tok = {token : response.body.access_token, refresh_token : refresh_token}
-      return resolve(tok)
-    }
-    else 
-    {
-      console.log("[ERR] impossible de refresh le token spotify,",error);
-      return resolve(false)
-    }
+      axios.post(url, data, { headers })
+          .then(response => {
+              if (response.status === 200) {
+                  const tok = { token: response.data.access_token, refresh_token: refresh_token };
+                  console.log("token refreshed", tok);
+                  resolve(tok);
+              } else {
+                  console.log("[ERR] impossible de refresh le token spotify,", response.statusText);
+                  resolve(false);
+              }
+          })
+          .catch(error => {
+              console.log("[ERR] impossible de refresh le token spotify,", error.message);
+              resolve(false);
+          });
   });
-  })
 }
 
 async function get_user_token(username){
@@ -51,34 +51,34 @@ async function get_user_spotify_id(username){
 
 async function requete(url, body, method, username, qs = {}, nb_essaie = 1, token, refresh_token) {
   const options = {
-    method: method,
-    url: url,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    qs: method === 'GET' ? qs : {}, // Utilisez 'qs' pour les requêtes GET
-    body: method !== 'GET' ? body : undefined, // Utilisez 'body' pour les requêtes POST et PUT
-    json: true
+      method: method,
+      url: url,
+      headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+      },
+      params: method === 'GET' ? qs : {}, // Utilisez 'params' pour les requêtes GET
+      data: method !== 'GET' ? body : undefined, // Utilisez 'data' pour les requêtes POST et PUT
   };
 
   return new Promise((resolve, reject) => {
-    request(options, async (error, response, body) => {
-      if (body.
-        error) {
-        if (nb_essaie > 0 && body.error.status === 401) {
-          console.log("refreshing token");
-          const newTokens = await refresh_user_spotify_token(token, refresh_token);
-          const newToken = newTokens.token;
-          const newRefreshToken = newTokens.refresh_token;
-          const newResponse = await requete(url, body, method, username, qs, nb_essaie - 1, newToken, refresh_token);
-          return resolve({ reponse: newResponse.reponse, token: newToken, refresh_token: newRefreshToken,platform: "Spotify"});
-        }
-        console.error(body.error);
-        return resolve({ reponse: -1, token: body.error });
-      }
-      return resolve({ reponse: body, token: null, refresh_token: null,platform: "Spotify"});
-    });
+      axios(options)
+          .then(response => {
+              resolve({ reponse: response.data, token: null, refresh_token: null, platform: "Spotify" });
+          })
+          .catch(async error => {
+              if (error.response && error.response.data && error.response.data.error && nb_essaie > 0 && error.response.data.error.status === 401) {
+                  console.log("refreshing token");
+                  const newTokens = await refresh_user_spotify_token(token, refresh_token);
+                  const newToken = newTokens.token;
+                  console.log("new token", newToken);
+                  const newRefreshToken = newTokens.refresh_token;
+                  const newResponse = await requete(url, body, method, username, qs, nb_essaie - 1, newToken, refresh_token);
+                  return resolve({ reponse: newResponse.reponse, token: newToken, refresh_token: newRefreshToken, platform: "Spotify" });
+              }
+              console.error(error.response ? error.response.data.error : error.message);
+              resolve({ reponse: -1, token: error.response ? error.response.data.error : error.message });
+          });
   });
 }
 
