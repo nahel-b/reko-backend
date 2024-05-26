@@ -1,14 +1,11 @@
 const request = require('request');
 const database = require('../database.js');
-const spotify_client_id = process.env['spotify_client_id']
-const spotify_client_secret = process.env['spotify_client_secret']
-const crypto_manager = require('./crypto_manager.js');
+const { platform } = require('os');
+const spotify_client_id = process.env['SPOTIFY_CLIENT_ID']
+const spotify_client_secret = process.env['SPOTIFY_CLIENT_SECRET']
 
-async function refresh_user_spotify_token(username){
+async function refresh_user_spotify_token(token,refresh_token){
 
-  var refresh_token = await database.getUserMusicToken(username);
-  refresh_token = refresh_token[0].refresh_token
-  const user_spotify_id = await database.getUserSpotifyId(username);
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: {
@@ -25,13 +22,12 @@ async function refresh_user_spotify_token(username){
   return new Promise((resolve, reject) => {
   request.post(authOptions,async function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      const tok = {access_token : crypto_manager.encrypt(body.access_token), refresh_token : crypto_manager.encrypt(refresh_token),user_spotify_id}
-      let resp = await database.updateUser(username, {spotify : JSON.stringify(tok)})
-      return resolve(resp)
+      const tok = {token : response.body.access_token, refresh_token : refresh_token}
+      return resolve(tok)
     }
     else 
     {
-      console.log("[ERR] impossible de refresh le token spotify de " + username);
+      console.log("[ERR] impossible de refresh le token spotify,",error);
       return resolve(false)
     }
   });
@@ -53,39 +49,37 @@ async function get_user_spotify_id(username){
   
 }
 
-async function requete(url, body, method, username, qs = {}, nb_essaie = 1) {
-  
-let user_token = await get_user_token(username);
-const options = {
-  method: method,
-  url: url,
-  headers: {
-    'Authorization': `Bearer ${user_token}`,
-    'Content-Type': 'application/json'
-  },
-  qs: method === 'GET' ? qs : {}, // Utilisez 'qs' pour les requêtes GET
-  body: method !== 'GET' ? body : undefined, // Utilisez 'body' pour les requêtes POST et PUT
-  json: true
-};
+async function requete(url, body, method, username, qs = {}, nb_essaie = 1, token, refresh_token) {
+  const options = {
+    method: method,
+    url: url,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    qs: method === 'GET' ? qs : {}, // Utilisez 'qs' pour les requêtes GET
+    body: method !== 'GET' ? body : undefined, // Utilisez 'body' pour les requêtes POST et PUT
+    json: true
+  };
 
   return new Promise((resolve, reject) => {
-  request(options, async (error, response, body) => {
-
-    if (body.error) {
-      if(nb_essaie >0 && body.error.status == 401)
-      {
-        console.log("refreshh")
-        await refresh_user_spotify_token(username)
-        let rep = await requete(url,body,method,username,qs,nb_essaie-1)
-        return resolve(rep)
+    request(options, async (error, response, body) => {
+      if (body.
+        error) {
+        if (nb_essaie > 0 && body.error.status === 401) {
+          console.log("refreshing token");
+          const newTokens = await refresh_user_spotify_token(token, refresh_token);
+          const newToken = newTokens.token;
+          const newRefreshToken = newTokens.refresh_token;
+          const newResponse = await requete(url, body, method, username, qs, nb_essaie - 1, newToken, refresh_token);
+          return resolve({ reponse: newResponse.reponse, token: newToken, refresh_token: newRefreshToken,platform: "Spotify"});
+        }
+        console.error(body.error);
+        return resolve({ reponse: -1, token: body.error });
       }
-      console.error(body.error);
-      return resolve([-1,body.error]);
-    }
-    return resolve(body)
+      return resolve({ reponse: body, token: null, refresh_token: null,platform: "Spotify"});
+    });
   });
-  })
-
 }
 
 async function createSpotifyPlaylist(nom,username) {
@@ -118,13 +112,13 @@ async function addTracksToSpotifyPlaylist(tracks_id, playlist_id,username) {
   return true;
 }
 
-async function getRecentSpotifyPlaylists(username){
+async function getRecentSpotifyPlaylists(token,refresh_token){
 
   let url = 'https://api.spotify.com/v1/me/playlists'
   //let qs = {'limit': nb_prop_playlists,'offset': offset }
-  let resp = await requete(url,null,"GET",username,{})
+  let resp = await requete(url,null,"GET","",{},1,token,refresh_token)
   if (resp[0] == -1) {console.log("[ERR] erreur lors de la recuperation des playlists récentes :" + resp[1]);return -1;}
-  return resp.items
+  return {reponse : resp.reponse.items, token: resp.token, refresh_token: resp.refresh_token,platform: "Spotify"}
   
 }
 

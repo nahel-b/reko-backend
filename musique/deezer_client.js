@@ -91,11 +91,9 @@ async function getDeezerPlaylist(playlistId,user_token) {
   });
 }
 
-async function getRecentDeezerPlaylists(username) {
+async function getRecentDeezerPlaylists(user_token) {
   //alerte("acc -- " + accessToken)
 
-  let user_token = await database.getUserMusicToken(username)
-  user_token = user_token[1].access_token
   const nonvalide = await non_valide_deezer_user_token(user_token)
 
   if( nonvalide)
