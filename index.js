@@ -1,6 +1,5 @@
 const express = require('express');
 const session = require('express-session');
-const request = require('request');
 const axios = require('axios');
 
 const apiRoutes = require('./api');
@@ -34,32 +33,29 @@ const REDIRECT_SPOTIFY_URI = process.env.BACKEND_URL +  '/spotifycallback';
 
 
 app.get('/spotifycallback', async (req, res) => {
-
-  console.log("red_URI",REDIRECT_SPOTIFY_URI);
+  console.log("red_URI", REDIRECT_SPOTIFY_URI);
   const code = req.query.code;
   if (!code) {
     return res.status(400).send('Code is missing');
   }
 
   try {
-    request.post({
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
+    const response = await axios.post('https://accounts.spotify.com/api/token', null, {
+      params: {
         grant_type: 'authorization_code',
         code,
         redirect_uri: REDIRECT_SPOTIFY_URI,
         client_id: SPOTIFY_CLIENT_ID,
         client_secret: SPOTIFY_CLIENT_SECRET,
       },
-    }, (error, response, body) => {
-      if (error) {
-        console.error('Error getting Spotify token:', error);
-        return res.status(500).send('Internal Server Error');
-      }
-      const { access_token, refresh_token } = JSON.parse(body);
-      // Redirect back to the mobile app with the token
-      res.redirect(`null?access_token=${access_token}&refresh_token=${refresh_token}`);
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     });
+
+    const { access_token, refresh_token } = response.data;
+    // Redirect back to the mobile app with the token
+    res.redirect(`null?access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error getting Spotify token:', error);
     res.status(500).send('Internal Server Error');
