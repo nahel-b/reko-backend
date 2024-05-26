@@ -46,7 +46,7 @@ async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant
           Authorization: `Bearer ${spotify_server_token}`,
           'Content-Type': 'application/json'
       };
-
+      console.log("params",params)
       axios.get('https://api.spotify.com/v1/recommendations', { params, headers })
           .then(response => {
               if (response.status === 200) {

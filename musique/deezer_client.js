@@ -105,7 +105,7 @@ async function getRecentDeezerPlaylists(user_token) {
   }
 }
 
-async function createDeezerPlaylist(nom, access_token, username) {
+async function createDeezerPlaylist(nom, access_token) {
   const nonvalide = await non_valide_deezer_user_token(access_token);
 
   if (nonvalide) {
@@ -122,7 +122,6 @@ async function createDeezerPlaylist(nom, access_token, username) {
 
     const p = response.data;
     const playlistId = p.id;
-    console.log("[APP]✏️ " + username + " a créé une playlist Deezer (" + playlistId + ") : " + nom);
     return playlistId;
   } catch (error) {
     console.error("Erreur dans créer playlist Deezer=" + error);

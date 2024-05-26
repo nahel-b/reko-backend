@@ -66,7 +66,7 @@ router.get("/user_playlist", async (req, res) => {
     const donnee = await spotify_client.getRecentSpotifyPlaylists(token,refresh_token);
     // console.log("donnee",donnee);
     if(donnee == -1){
-      return res.json({data : []});
+      return res.json({reponse : []});
     }
     const transformedPlaylists = donnee.reponse.map((playlist) => {
       return  {
@@ -82,8 +82,8 @@ router.get("/user_playlist", async (req, res) => {
 
   }
   else if(plateform == "Deezer"){
-    const donnee = await deezer_client.getRecentDeezerPlaylists(token);
-    if(donnee == -1){
+    const donnee = await deezer_client.getRecentDeezerPlaylists( token);
+    if(donnee == -1|| donnee == undefined|| donnee == null){
       return res.json({reponse : []});
     }
     const transformedPlaylists = donnee.map((playlist) => {
@@ -102,5 +102,106 @@ router.get("/user_playlist", async (req, res) => {
 
 });
 
+
+router.get("/get_playlist_tracks_id", async (req, res) => {
+
+
+  const plateform = req.query.plateform;
+  const playlistId = req.query.playlistId;
+  const token = req.query.token;
+  const refresh_token = req.query.refresh_token;
+
+  if ( !plateform || !token || (plateform == "Spotify" && !refresh_token) ) {
+    res.json(-1);
+  } else if(plateform == "Spotify"){
+
+    const donnee = await spotify_client.getSpotifyPlaylistTracksId(playlistId,token,refresh_token);
+    if(donnee == -1 || donnee == undefined|| donnee == null){
+      return res.json({reponse : []});
+    }
+    if(donnee.reponse && donnee.reponse.length > 0){
+      //melanger les tracks
+      donnee.reponse.sort(() => Math.random() - 0.5);
+    }
+
+    return res.json({reponse : donnee.reponse.slice(0, 5), token: donnee.token, refresh_token: donnee.refresh_token,platform: "Spotify"});
+
+  }
+  else if(plateform == "Deezer"){
+
+    const donnee = await deezer_client.getDeezerPlaylistTracksId(playlistId,token);
+    if(donnee == -1 || donnee == undefined|| donnee == null){
+      return res.json({reponse : []});
+    }
+    if(donnee && donnee.length > 0){
+      //melanger les tracks
+      donnee.sort(() => Math.random() - 0.5);
+    }
+    return res.json({reponse : donnee.slice(0, 5), token: null, refresh_token: null,platform: "Deezer"});
+
+  }
+
+
+});
+
+
+router.get("/creer_playlist", async (req, res) => {
+
+
+  const plateform = req.query.plateform;
+  const playlistName = req.query.playlistName;
+  const token = req.query.token;
+  const refresh_token = req.query.refresh_token;
+
+  if ( !plateform || !token || (plateform == "Spotify" && !refresh_token) ) {
+    res.json(-1);
+  } else if(plateform == "Spotify"){
+
+    const donnee = await spotify_client.createSpotifyPlaylist(playlistName,token,refresh_token);
+    if(donnee == -1 || donnee == undefined|| donnee == null){
+      return res.json({reponse : -1});
+    }
+    
+    return res.json({reponse : donnee.reponse, token: donnee.token, refresh_token: donnee.refresh_token,platform: "Spotify"});
+
+  }
+  else if(plateform == "Deezer"){
+
+    const donnee = await deezer_client.createDeezerPlaylist(playlistName,token);
+    if(donnee == -1 || donnee == undefined|| donnee == null){
+      return res.json({reponse : []});
+    }
+    
+    return res.json({reponse : donnee, token: null, refresh_token: null,platform: "Deezer"});
+
+  }
+
+
+});
+
+router.get("/recommandation", async (req, res) => {
+
+ 
+  var liste_son_seed_reco = req.query.liste_son_seed_reco.split(",");
+  const offset = req.query.offset;
+  const limit = req.query.limit !== undefined ? req.query.limit : 50;
+
+  if(!liste_son_seed_reco || !offset  ){
+    return res.json(-1);
+  }
+
+  const donnee = await spotify_serveur.recommandation(
+    liste_son_seed_reco,
+    offset,
+    limit
+  );
+  if(donnee == -1){
+    return res.json({reponse : []});
+  }
+  return res.json({reponse : donnee, token: null, refresh_token: null,platform: null});
+
+
+
+});
 
 module.exports = router;

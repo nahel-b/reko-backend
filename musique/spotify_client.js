@@ -82,13 +82,13 @@ async function requete(url, body, method, username, qs = {}, nb_essaie = 1, toke
   });
 }
 
-async function createSpotifyPlaylist(nom,username) {
+async function createSpotifyPlaylist(nom,token,refresh_token) {
   
   let url = "https://api.spotify.com/v1/me/playlists"
   let body = { name: nom }
-  let resp = await requete(url, body, "POST", username)
-  if (resp[0] == -1){console.log("[ERR] erreur lors de la création d'une playlist : " + resp[1]);return -1;}
-  return resp.id;
+  let resp = await requete(url,body,"POST","",{},1,token,refresh_token)
+  if (resp == -1){console.log("[ERR] erreur lors de la création d'une playlist : " + resp[1]);return -1;}
+  return {reponse : resp.reponse.id, token: resp.token, refresh_token: resp.refresh_token,platform: "Spotify"};
 
 }
 
@@ -98,7 +98,7 @@ async function addTracksToSpotifyPlaylist(tracks_id, playlist_id,username) {
   
   let url = `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`
   let body = { uris: formattedTracks }
-  let resp = await requete(url,body,'POST',username)
+  let resp = await requete(url,null,"POST","",{},1,token,refresh_token)
   if (resp[0] === -1) 
   {
     if(resp[1] == {status: 403,message: "You cannot add tracks to a playlist you don't own."})
@@ -122,17 +122,17 @@ async function getRecentSpotifyPlaylists(token,refresh_token){
   
 }
 
-async function getSpotifyPlaylistTracksId(playlist_id,username){
+async function getSpotifyPlaylistTracksId(playlist_id,token,refresh_token){
 
   let url = `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`
-  let resp = await requete(url,null,"GET",username)
+  let resp = await requete(url,null,"GET","",{},1,token,refresh_token)
   if (resp[0] == -1) {console.log("[ERR] erreur lors de la recuperation des ids des tracks :" + resp[1]);return -1;}
-  resp = resp.items
+  resp = resp.reponse.items
   let res = []
   resp.forEach(async track => {
       res.push(track.track.id)
   });
-  return res
+  return {reponse : res, token: resp.token, refresh_token: resp.refresh_token,platform: "Spotify"}
 }
 
 async function getSpotifyPlaylist(id_pl,username){
