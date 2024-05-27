@@ -130,37 +130,28 @@ async function createDeezerPlaylist(nom, access_token) {
 }
 
 //add track to playlist
-// async function addTracksToDeezerPlaylist(playlistId,tracksId,access_token) 
-// {
-  
-//   const nonvalide = await non_valide_deezer_user_token(access_token)
-//   if( nonvalide)
-//   {
-//     return(-1)
-//   }
-//   const options = {
-//     method: "POST",
-//     url: `https://api.deezer.com/playlist/${playlistId}/tracks`,
-//     qs: {
-//       'access_token': access_token,
-//       'songs': tracksId.join(',')
-//     }
-//   };
+async function addTracksToDeezerPlaylist(playlistId, tracksId, access_token) {
+  const nonvalide = await non_valide_deezer_user_token(access_token);
+  if (nonvalide) {
+    return -1;
+  }
 
+  const options = {
+    method: "POST",
+    url: `https://api.deezer.com/playlist/${playlistId}/tracks`,
+    params: {
+      access_token: access_token,
+      songs: tracksId.join(',')
+    }
+  };
+  try {
+    const response = await axios(options);
+    console.log(response.data);
+    return true;
+  } catch (error) {
+    console.error(`[ERR] dans ajout des sons ${tracksId.join(',')} dans la playlist ${playlistId}: ${error}`);
+    return -1;
+  }
+}
 
-//   return new Promise( async (resolve, reject) => {
-//   request(options, async (error, response, body) => {
-//     console.log(body)
-//     if (error) {
-//       console.error("[ERR] dans ajout des sons" +  tracksId.join(',')  + " dans la playlist " + playlistId + error);
-//       resolve(-1)
-//       return
-//     }
-//     resolve(true)
-//     return
-//   });
-
-//   })
-// }
-
-module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId,getDeezerPlaylist}
+module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId,getDeezerPlaylist,addTracksToDeezerPlaylist}

@@ -47,7 +47,6 @@ async function signup(req, res, next) {
 }
 
 async function login(req, res, next) {
-    console.log("Login")
     try {
         const db = getDB();
         const usersCollection = db.collection('utilisateur');
@@ -62,7 +61,6 @@ async function login(req, res, next) {
         if (compareRes) {
             // Crée un token JWT
             const token = jwt.sign({ email: req.body.email.toLowerCase() }, process.env.JWT_SECRET, { expiresIn: '7d' });
-            console.log("User logged in : ", dbUser.username)
             res.status(200).json({ message: "User logged in", token: token });
         } else {
             res.status(401).json({ message: "Invalid credentials" });

@@ -46,7 +46,6 @@ async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant
           Authorization: `Bearer ${spotify_server_token}`,
           'Content-Type': 'application/json'
       };
-      console.log("params",params)
       axios.get('https://api.spotify.com/v1/recommendations', { params, headers })
           .then(response => {
               if (response.status === 200) {
@@ -58,9 +57,13 @@ async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant
                           liste_reco_res.push({
                               image_urls: track.album.images.map(image => image.url),
                               titre: track.name,
-                              artiste: track.artists[0].name,
+                              artiste: track.artists,
                               id: track.id,
-                              preview_url: track.preview_url
+                              preview_url: track.preview_url,
+                              album: track.album.name,
+                              external_urls: track.external_urls[0],
+                              popularity: track.popularity,
+                              duration: track.duration_ms,
                           });
                       }
                   });
@@ -72,7 +75,7 @@ async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant
                           .then(resolve)
                           .catch(reject);
                   } else {
-                      console.log("[ERR] erreur dans change tracks : " + response.statusText);
+                      console.log("[ERR] erreur dans change tracks : " + response);
                       resolve(-1);
                   }
               }
@@ -217,7 +220,7 @@ async function s_to_d(spotifyId,essaie_restant = 1) {
     const deezerTrack = deezerResponse.data.data[0];
     if (deezerTrack == null)
     {
-      log("[ERR-RECO] s_to_d n'a pas marché pour l'id spotify: " + spotifyId);
+      log("[Conversion Failed] s_to_d n'a pas marché pour l'id spotify: " + spotifyId);
     }
     return deezerTrack ? String(deezerTrack.id) : null;
   } catch (error) {
@@ -228,7 +231,7 @@ async function s_to_d(spotifyId,essaie_restant = 1) {
         let res = await s_to_d(spotifyId, essaie_restant-1)
         return res;
       }
-    log("[ERR-RECO] s_to_d n'a pas marché pour l'id spotify: " + spotifyId + "erreur : " + error);
+    log("[Conversion Failed] s_to_d n'a pas marché pour l'id spotify: " + spotifyId + "erreur : " + error);
     return null;
   }
 }
@@ -241,69 +244,42 @@ async function liste_s_to_d(spotifyIds) {
 }
 
 async function d_to_s(deezerId, essaie_restant = 1) {
-  let spotify_server_token = await get_spotify_server_token();
+  const spotify_server_token = await get_spotify_server_token();
+  const headers = {
+    Authorization: `Bearer ${spotify_server_token}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json'
+  };
 
-  return new Promise(async (resolve, reject) => {
-      try {
-          // Recherche la musique sur Deezer
-          const deezerResponse = await axios.get(`http://api.deezer.com/track/${deezerId}`);
-          const deezerTrack = deezerResponse.data;
+  try {
+    // Recherche la musique sur Deezer
+    const deezerResponse = await axios.get(`http://api.deezer.com/track/${deezerId}`);
+    const deezerTrack = deezerResponse.data;
 
-          // Recherche la musique sur Spotify
-          let titre = deezerTrack.title;
-          const newTitre = titre.replace(/\(feat\.\s[^\)]+\)/, "");
-          let query = encodeURIComponent(`"${newTitre}" artist:"${deezerTrack.artist.name}"`);
+    // Nettoyage du titre pour la recherche Spotify
+    const newTitre = deezerTrack.title.replace(/\(feat\.\s[^\)]+\)/, "");
+    const query = encodeURIComponent(`"${newTitre}" artist:"${deezerTrack.artist.name}"`);
 
-          const headers = {
-              Authorization: `Bearer ${spotify_server_token}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json'
-          };
+    // Recherche la musique sur Spotify
+    const response = await axios.get(`https://api.spotify.com/v1/search?q=${query}&type=track`, { headers });
 
-          axios.get(`https://api.spotify.com/v1/search?q=${query}&type=track`, { headers })
-              .then(response => {
-                  if (response.status === 200) {
-                      try {
-                          const res = response.data.tracks.items[0].id;
-                          resolve(res);
-                      } catch (err) {
-                          if (essaie_restant > 0) {
-                              d_to_s(deezerId, essaie_restant - 1)
-                                  .then(resolve)
-                                  .catch(reject);
-                          } else {
-                              resolve(null);
-                          }
-                      }
-                  } else {
-                      if (essaie_restant > 0) {
-                          d_to_s(deezerId, essaie_restant - 1)
-                              .then(resolve)
-                              .catch(reject);
-                      } else {
-                          resolve(null);
-                      }
-                  }
-              })
-              .catch(error => {
-                  if (essaie_restant > 0) {
-                      d_to_s(deezerId, essaie_restant - 1)
-                          .then(resolve)
-                          .catch(reject);
-                  } else {
-                      resolve(null);
-                  }
-              });
-      } catch (err) {
-          if (essaie_restant > 0) {
-              d_to_s(deezerId, essaie_restant - 1)
-                  .then(resolve)
-                  .catch(reject);
-          } else {
-              resolve(null);
-          }
-      }
-  });
+    if (response.status === 200 && response.data.tracks.items.length > 0) {
+      return response.data.tracks.items[0].id;
+    } else if(response.data.tracks.items.length == 0) {
+      console.log("[Conversion Failed] s_to_d  |  id_deezer: " + deezerId + " aucune musique trouvée");
+      return null
+      
+    }else {
+      throw new Error('[Conversion Failed] s_to_d id_deezer: ' + deezerId + "erreur :" + jsonString);
+    }
+  } catch (error) {
+    if (essaie_restant > 0) {
+      return d_to_s(deezerId, essaie_restant - 1);
+    } else {
+      console.log(error);
+      return null;
+    }
+  }
 }
 
 async function liste_d_to_s(deezerIds) {

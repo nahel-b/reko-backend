@@ -20,7 +20,6 @@ async function refresh_user_spotify_token(token, refresh_token) {
           .then(response => {
               if (response.status === 200) {
                   const tok = { token: response.data.access_token, refresh_token: refresh_token };
-                  console.log("token refreshed", tok);
                   resolve(tok);
               } else {
                   console.log("[ERR] impossible de refresh le token spotify,", response.statusText);
@@ -68,10 +67,8 @@ async function requete(url, body, method, username, qs = {}, nb_essaie = 1, toke
           })
           .catch(async error => {
               if (error.response && error.response.data && error.response.data.error && nb_essaie > 0 && error.response.data.error.status === 401) {
-                  console.log("refreshing token");
                   const newTokens = await refresh_user_spotify_token(token, refresh_token);
                   const newToken = newTokens.token;
-                  console.log("new token", newToken);
                   const newRefreshToken = newTokens.refresh_token;
                   const newResponse = await requete(url, body, method, username, qs, nb_essaie - 1, newToken, refresh_token);
                   return resolve({ reponse: newResponse.reponse, token: newToken, refresh_token: newRefreshToken, platform: "Spotify" });
@@ -98,7 +95,7 @@ async function addTracksToSpotifyPlaylist(tracks_id, playlist_id,username) {
   
   let url = `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`
   let body = { uris: formattedTracks }
-  let resp = await requete(url,null,"POST","",{},1,token,refresh_token)
+  let resp = await requete(url,body,"POST","",{},1,token,refresh_token)
   if (resp[0] === -1) 
   {
     if(resp[1] == {status: 403,message: "You cannot add tracks to a playlist you don't own."})

@@ -33,7 +33,6 @@ const REDIRECT_SPOTIFY_URI = process.env.BACKEND_URL +  '/spotifycallback';
 
 
 app.get('/spotifycallback', async (req, res) => {
-  console.log("red_URI", REDIRECT_SPOTIFY_URI);
   const code = req.query.code;
   if (!code) {
     return res.status(400).send('Code is missing');
@@ -74,7 +73,6 @@ app.get('/deezercallback', async (req, res) => {
   }
 
   try {
-    console.log("url",`https://connect.deezer.com/oauth/access_token.php?app_id=${DEEZER_CLIENT_ID}&secret=${DEEZER_CLIENT_SECRET}&code=${code}`);
 
     const response = await axios.get('https://connect.deezer.com/oauth/access_token.php', {
       params: {
