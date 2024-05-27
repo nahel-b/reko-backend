@@ -58,7 +58,7 @@ async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant
                               image_urls: track.album.images.map(image => image.url),
                               titre: track.name,
                               artiste: track.artists,
-                              id: track.id,
+                              id_spotify: track.id,
                               preview_url: track.preview_url,
                               album: track.album.name,
                               external_urls: track.external_urls[0],

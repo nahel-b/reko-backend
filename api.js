@@ -237,8 +237,14 @@ router.get("/ajouter_tracks_playlist", async (req, res) => {
   
     }
     else if(plateform == "Deezer"){
+
+      let ids_spotify =  await spotify_serveur.liste_s_to_d(tracks_id);
+      //supprimer les element null
+      ids_spotify = ids_spotify.filter(function (el) {
+        return el != null;
+      });
   
-      const donnee = await deezer_client.addTracksToDeezerPlaylist(playlist_id,tracks_id,token);
+      const donnee = await deezer_client.addTracksToDeezerPlaylist(playlist_id,ids_spotify,token);
       if(donnee == -1){
         return res.json(-1);
       }

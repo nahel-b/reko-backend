@@ -89,7 +89,7 @@ async function createSpotifyPlaylist(nom,token,refresh_token) {
 
 }
 
-async function addTracksToSpotifyPlaylist(tracks_id, playlist_id,username) {
+async function addTracksToSpotifyPlaylist(tracks_id, playlist_id,token,refresh_token) {
 
   let formattedTracks = tracks_id.map(track => 'spotify:track:' + track);
   
