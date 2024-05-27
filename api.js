@@ -18,6 +18,7 @@ router.post('/login', login);
 router.post('/signup', signup);
 
 router.get('/status', (req, res) => {
+  console.log("/status");
   res.json( "true" );
 });
 
