@@ -255,5 +255,44 @@ router.get("/ajouter_tracks_playlist", async (req, res) => {
   });
 
 
+  router.get("/delete_track_playlist", async (req, res) => {
+      
+      console.log("/delete_track_playlist");
+    
+      const plateform = req.query.plateform;
+      const track_id = req.query.track_id;
+      const playlist_id = req.query.playlist_id;
+      const token = req.query.token;
+      const refresh_token = req.query.refresh_token;
+    
+      if ( !plateform || !token || (plateform == "Spotify" && !refresh_token) ) {
+        res.json(-1);
+      } else if(plateform == "Spotify"){
+    
+        const donnee = await spotify_client.deleteSpotifyTrackPlaylist(playlist_id,track_id,token,refresh_token);
+        if(donnee == -1){
+          return res.json(-1);
+        }
+        return res.json({reponse : donnee.reponse, token: donnee.token, refresh_token: donnee.refresh_token,platform: "Spotify"});
+    
+      }
+      else if(plateform == "Deezer"){
+
+        const id_deezer =  await spotify_serveur.s_to_d(track_id);
+        if(id_deezer == null){
+          return res.json(-1);
+        }
+    
+        const donnee = await deezer_client.deleteDeezerTrackPlaylist(id_deezer,playlist_id,token);
+        if(donnee == -1){
+          return res.json(-1);
+        }
+        return res.json({reponse : donnee, token: null, refresh_token: null,platform: "Deezer"});
+    
+      }
+    
+    });
+
+
 
 module.exports = router;

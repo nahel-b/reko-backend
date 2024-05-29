@@ -147,5 +147,14 @@ async function getSpotifyPlaylist(id_pl,username){
 }
 
 
+async function deleteSpotifyTrackPlaylist(playlist_id,track_id,token,refresh_token){
 
-module.exports ={getRecentSpotifyPlaylists,createSpotifyPlaylist,getSpotifyPlaylistTracksId,addTracksToSpotifyPlaylist,getSpotifyPlaylist,get_user_spotify_id}
+  let url = `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`
+  let body = { tracks: [{ "uri": `spotify:track:${track_id}` }] }
+  let resp = await requete(url,body,"DELETE","",{},1,token,refresh_token)
+  return resp;
+}
+
+
+
+module.exports ={getRecentSpotifyPlaylists,createSpotifyPlaylist,getSpotifyPlaylistTracksId,addTracksToSpotifyPlaylist,getSpotifyPlaylist,get_user_spotify_id,deleteSpotifyTrackPlaylist}

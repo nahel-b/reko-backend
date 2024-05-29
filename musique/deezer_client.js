@@ -154,4 +154,28 @@ async function addTracksToDeezerPlaylist(playlistId, tracksId, access_token) {
   }
 }
 
-module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId,getDeezerPlaylist,addTracksToDeezerPlaylist}
+async function deleteDeezerTrackPlaylist( trackId,playlistId, access_token) {
+  const nonvalide = await non_valide_deezer_user_token(access_token);
+  if (nonvalide) {
+    return -1;
+  }
+
+  const options = {
+    method: "DELETE",
+    url: `https://api.deezer.com/playlist/${playlistId}/tracks`,
+    params: {
+      access_token: access_token,
+      songs: trackId
+    }
+  };
+
+  try {
+    const response = await axios(options);
+    return true;
+  } catch (error) {
+    console.error(`[ERR] dans suppression du son ${trackId} dans la playlist ${playlistId}: ${error}`);
+    return -1;
+  }
+}
+
+module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId,getDeezerPlaylist,addTracksToDeezerPlaylist,deleteDeezerTrackPlaylist}
