@@ -178,4 +178,53 @@ async function deleteDeezerTrackPlaylist( trackId,playlistId, access_token) {
   }
 }
 
-module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId,getDeezerPlaylist,addTracksToDeezerPlaylist,deleteDeezerTrackPlaylist}
+
+async function likeDeezerTrack(trackId, access_token) {
+  const nonvalide = await non_valide_deezer_user_token(access_token);
+  if (nonvalide) {
+    return -1;
+  }
+
+  const options = {
+    method: "POST",
+    url: `https://api.deezer.com/user/me/tracks`,
+    params: {
+      access_token: access_token,
+      track_id: trackId
+    }
+  };
+
+  try {
+    const response = await axios(options);
+    return true;
+  } catch (error) {
+    console.error(`[ERR] dans like du son ${trackId}: ${error}`);
+    return -1;
+  }
+}
+
+async function dislikeDeezerTrack(trackId, access_token) {
+  const nonvalide = await non_valide_deezer_user_token(access_token);
+  if (nonvalide) {
+    return -1;
+  }
+
+  const options = {
+    method: "DELETE",
+    url: `https://api.deezer.com/user/me/tracks`,
+    params: {
+      access_token: access_token,
+      track_id: trackId
+    }
+  };
+
+  try {
+    const response = await axios(options);
+    return true;
+  } catch (error) {
+    console.error(`[ERR] dans dislike du son ${trackId}: ${error}`);
+    return -1;
+  }
+}
+
+module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId,getDeezerPlaylist,addTracksToDeezerPlaylist,deleteDeezerTrackPlaylist,likeDeezerTrack,dislikeDeezerTrack}

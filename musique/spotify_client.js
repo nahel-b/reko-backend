@@ -33,12 +33,7 @@ async function refresh_user_spotify_token(token, refresh_token) {
   });
 }
 
-async function get_user_token(username){
 
-  var refresh_token = await database.getUserMusicToken(username);
-  return refresh_token[0].access_token
-  
-}
 
 async function get_user_spotify_id(username){
 
@@ -155,6 +150,22 @@ async function deleteSpotifyTrackPlaylist(playlist_id,track_id,token,refresh_tok
   return resp;
 }
 
+async function likeSpotifyTrack(track_id,token,refresh_token){
+
+  let url = `https://api.spotify.com/v1/me/tracks`
+  let body = { ids: [track_id] }
+  let resp = await requete(url,body,"PUT","",{},1,token,refresh_token)
+  return resp;
+} 
+
+async function dislikeSpotifyTrack(track_id,token,refresh_token){
+
+  let url = `https://api.spotify.com/v1/me/tracks`
+  let body = { ids: [track_id] }
+  let resp = await requete(url,body,"DELETE","",{},1,token,refresh_token)
+  return resp;
+}
 
 
-module.exports ={getRecentSpotifyPlaylists,createSpotifyPlaylist,getSpotifyPlaylistTracksId,addTracksToSpotifyPlaylist,getSpotifyPlaylist,get_user_spotify_id,deleteSpotifyTrackPlaylist}
+
+module.exports ={getRecentSpotifyPlaylists,createSpotifyPlaylist,getSpotifyPlaylistTracksId,addTracksToSpotifyPlaylist,getSpotifyPlaylist,get_user_spotify_id,deleteSpotifyTrackPlaylist,likeSpotifyTrack,dislikeSpotifyTrack}
