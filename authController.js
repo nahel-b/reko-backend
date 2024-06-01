@@ -60,7 +60,9 @@ async function login(req, res, next) {
         const compareRes = await bcrypt.compare(req.body.password, dbUser.password);
         if (compareRes) {
             // Crée un token JWT
-            const token = jwt.sign({ email: req.body.email.toLowerCase() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            //recuperer les informations de l'utilisateur
+            
+            const token = jwt.sign({ username: req.body.username.toLowerCase() }, process.env.JWT_SECRET, { expiresIn: '7d' });
             res.status(200).json({ message: "User logged in", token: token });
         } else {
             res.status(401).json({ message: "Invalid credentials" });
@@ -96,7 +98,7 @@ const authMiddleware = async (req, res, next) => {
 
         // Si le token est sur le point d'expirer, générer un nouveau token
         if (timeDifference < 300000) { // 5 minutes en millisecondes
-            const newToken = jwt.sign({ email: decodedToken.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const newToken = jwt.sign({ username: decodedToken.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
             // Envoyer le nouveau token dans l'en-tête de réponse
             res.setHeader('Authorization', `Bearer ${newToken}`);

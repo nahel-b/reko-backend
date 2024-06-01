@@ -6,6 +6,7 @@ const spotify_client = require("./musique/spotify_client.js");
 const deezer_client = require("./musique/deezer_client.js");
 
 const { login, signup,authMiddleware } = require("./authController.js");
+const { createPost} = require("./post.js");
 const { platform } = require("os");
 
 router.get("/public", async (req, res) => {
@@ -41,6 +42,31 @@ router.get("/recherche", async (req, res) => {
     res.json(-1);
   } else {
     const donnee = await spotify_serveur.envoie_recherche_musique(
+      song_name,
+      offset,
+      limit,
+    );
+    if(donnee == -1){
+      return res.json([]);
+    }
+    return res.json({reponse : donnee, token: null, refresh_token: null,platform: "Spotify"});
+  }
+});
+
+router.get("/recherche_precis", async (req, res) => {
+  // Récupérer les paramètres de la requête
+
+  console.log("/recherche_precis");
+
+  const song_name = req.query.song_name;
+  const offset = req.query.offset;
+  const limit = req.query.limit !== undefined ? req.query.limit : 3;
+
+
+  if (!song_name || !offset) {
+    res.json(-1);
+  } else {
+    const donnee = await spotify_serveur.envoie_recherche_musique_precis(
       song_name,
       offset,
       limit,
@@ -368,6 +394,102 @@ router.get("/dislike_track", async (req, res) => {
             
             });
 
+const { getDB } = require('./database');
+
+
+
+router.post("/posts", authMiddleware, async (req, res) => {
+  try {
+      const db = getDB();
+      const postsCollection = db.collection('posts');
+
+      // Générer un nouvel ID pour le post
+      const lastPost = await postsCollection.find().sort({ id: -1 }).limit(1).toArray();
+      const newId = lastPost.length > 0 ? lastPost[0].id + 1 : 1;
+
+      // Générer la date actuelle
+      const currentDate = new Date();
+
+      const newPost = {
+          id: newId,
+          album: req.body.track_album,
+          artiste: req.body.track_artist,
+          user: req.user.username, // Utilisez le username de l'utilisateur connecté
+          duration: req.body.track_duration,
+          id_spotify: req.body.track_id,
+          image_urls: req.body.track_image,
+          popularity: req.body.track_popularity,
+          preview_url: req.body.track_preview_url,
+          titre: req.body.track_title,
+          date: currentDate
+      };
+
+      await postsCollection.insertOne(newPost);
+      res.status(201).json({reponse : { message: "Post created", post: newPost }});
+  } catch (error) {
+      console.error("Error while creating post:", error);
+      res.status(500).json({ message: "Error while creating post" });
+  }
+});
+
+// Route pour obtenir tous les posts de musique
+router.get("/posts", async (req, res) => {
+  try {
+      const db = getDB();
+      const postsCollection = db.collection('posts');
+      const posts = await postsCollection.find().sort({ date: -1 }).toArray();
+      res.status(200).json({reponse : posts, username : req.user.username});
+  } catch (error) {
+      console.error("Error while fetching posts:", error);
+      res.status(500).json({ message: "Error while fetching posts" });
+  }
+});
+
+// Route pour obtenir un post de musique spécifique par ID
+router.get("/posts/:id", async (req, res) => {
+  try {
+      const db = getDB();
+      const postsCollection = db.collection('posts');
+      const post = await postsCollection.findOne({ id: parseInt(req.params.id) });
+
+      if (!post) {
+          return res.status(404).json({ message: "Post not found" });
+      }
+
+      res.status(200).json(post);
+  } catch (error) {
+      console.error("Error while fetching post:", error);
+      res.status(500).json({ message: "Error while fetching post" });
+  }
+});
+
+// Route pour supprimer un post de musique par ID
+router.delete("/posts/:id", authMiddleware, async (req, res) => {
+  try {
+      
+      const db = getDB();
+      const postsCollection = db.collection('posts');
+
+      //verifier que l'user du post est le meme que celui connecté
+
+      const post = await postsCollection.findOne({ id: parseInt(req.params.id) });
+      if (post.user !== req.user.username) {
+          return res.status(403).json({ message: "You are not allowed to delete this post" });
+      }
+      
+
+      const result = await postsCollection.deleteOne({ id: parseInt(req.params.id) });
+
+      if (result.deletedCount === 0) {
+          return res.status(404).json({ message: "Post not found" });
+      }
+
+      res.status(200).json({ message: "Post deleted" });
+  } catch (error) {
+      console.error("Error while deleting post:", error);
+      res.status(500).json({ message: "Error while deleting post" });
+  }
+});
 
 
 module.exports = router;

@@ -36,6 +36,35 @@ async function envoie_recherche_musique(demande, offset,limit =3) {
   }
 }
 
+async function envoie_recherche_musique_precis(demande, offset,limit =3) {
+  try {
+  let res = []
+  req = await demande_id( demande, offset,1,limit);
+
+  req.forEach(track => {
+    if (track.preview_url) {
+        res.push({
+            image_urls: track.album.images.map(image => image.url),
+            titre: track.name,
+            artiste: track.artists.map(artist => artist.name),
+            id_spotify: track.id,
+            preview_url: track.preview_url,
+            album: track.album.name,
+            external_urls: track.external_urls[0],
+            popularity: track.popularity,
+            duration: track.duration_ms,
+        });
+    }
+});
+  return res
+    }
+  catch(error)
+  {
+    console.log("errr" , error);
+    return -1;
+  }
+}
+
 //id spotify to musique reco
 async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant = 1) {
   let spotify_server_token = await get_spotify_server_token();
@@ -324,4 +353,4 @@ async function liste_d_to_s(deezerIds) {
 
 
 
-module.exports ={get_spotify_server_token,isTokenValid,demande_id,s_to_d,liste_s_to_d,d_to_s,liste_d_to_s,envoie_recherche_musique,recommandation}
+module.exports ={get_spotify_server_token,isTokenValid,demande_id,s_to_d,liste_s_to_d,d_to_s,liste_d_to_s,envoie_recherche_musique,recommandation,envoie_recherche_musique_precis}
