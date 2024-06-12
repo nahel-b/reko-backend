@@ -24,7 +24,7 @@ router.get('/status', (req, res) => {
 
 router.use(authMiddleware);
 
-router.post('/delete_account', deleteAccount);
+router.delete('/delete_account', deleteAccount);
 
 router.get("/checktoken", (req, res) => {
   res.json( "true" );

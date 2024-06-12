@@ -115,6 +115,7 @@ const authMiddleware = async (req, res, next) => {
 };
 
 async function deleteAccount(req, res, next) {
+    console.log("User to delete : ", req.user);
     try {
         const db = getDB();
         const usersCollection = db.collection('utilisateur');
