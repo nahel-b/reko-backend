@@ -114,4 +114,21 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
-module.exports = { signup,login, authMiddleware };
+async function deleteAccount(req, res, next) {
+    try {
+        const db = getDB();
+        const usersCollection = db.collection('utilisateur');
+        
+        const result = await usersCollection.deleteOne({ username: req.user.username });
+        if (result.deletedCount === 1) {
+            res.status(200).json({ message: "User deleted" });
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        console.error("Error while deleting user:", error);
+        res.status(500).json({ message: "Error while deleting user" });
+    }
+}
+
+module.exports = { signup,login, authMiddleware,deleteAccount };

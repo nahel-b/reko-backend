@@ -5,7 +5,7 @@ const spotify_serveur = require("./musique/spotify_serveur.js");
 const spotify_client = require("./musique/spotify_client.js");
 const deezer_client = require("./musique/deezer_client.js");
 
-const { login, signup,authMiddleware } = require("./authController.js");
+const { login, signup,authMiddleware,deleteAccount } = require("./authController.js");
 const { createPost} = require("./post.js");
 const { platform } = require("os");
 
@@ -23,6 +23,8 @@ router.get('/status', (req, res) => {
 });
 
 router.use(authMiddleware);
+
+router.post('/delete_account', deleteAccount);
 
 router.get("/checktoken", (req, res) => {
   res.json( "true" );
