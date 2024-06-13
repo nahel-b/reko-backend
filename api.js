@@ -412,12 +412,15 @@ router.get("/dislike_track", async (req, res) => {
 
 const { getDB } = require('./database');
 
-
+const allowPost = process.env.ALLOW_POST === 'true';
 
 router.post("/posts", authMiddleware, async (req, res) => {
 
   console_log(req,"/posts (post)")
   try {
+    if(!allowPost){
+      return res.status(403).json({ message: "Posting is disabled" });
+    }
       const db = getDB();
       const postsCollection = db.collection('posts');
 
