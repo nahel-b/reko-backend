@@ -146,7 +146,7 @@ async function addTracksToDeezerPlaylist(playlistId, tracksId, access_token) {
   };
   try {
     const response = await axios(options);
-    console.log(response.data);
+    // console.log(response.data);
     return true;
   } catch (error) {
     console.error(`[ERR] dans ajout des sons ${tracksId.join(',')} dans la playlist ${playlistId}: ${error}`);

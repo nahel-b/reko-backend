@@ -14,6 +14,10 @@ router.get("/public", async (req, res) => {
   res.json({ message: "Hello from a public endpoint! You don't need to be authenticated to see this." });
 });
 
+function console_log(req,message){
+  console.log("[APP]["+req.user.username+"] "+message);
+}
+
 
 const minimal_version = process.env.minimal_version;
 
@@ -42,7 +46,7 @@ router.get("/checktoken", (req, res) => {
 router.get("/recherche", async (req, res) => {
   // Récupérer les paramètres de la requête
 
-  console.log("/recherche");
+  console_log(req,"/recherche")
 
   const song_name = req.query.song_name;
   const offset = req.query.offset;
@@ -67,7 +71,7 @@ router.get("/recherche", async (req, res) => {
 router.get("/recherche_precis", async (req, res) => {
   // Récupérer les paramètres de la requête
 
-  console.log("/recherche_precis");
+  console_log(req,"/recherche_precis")
 
   const song_name = req.query.song_name;
   const offset = req.query.offset;
@@ -91,7 +95,8 @@ router.get("/recherche_precis", async (req, res) => {
 
 router.get("/user_playlist", async (req, res) => {
 
-  console.log("/user_playlist");
+  console_log(req,"/user_playlist")
+
 
   const plateform = req.query.plateform;
   const token = req.query.token;
@@ -144,7 +149,7 @@ router.get("/user_playlist", async (req, res) => {
 
 router.get("/get_playlist_tracks_id", async (req, res) => {
 
-  console.log("/get_playlist_tracks_id");
+  console_log(req,"/get_playlist_tracks_id")
 
 
   const plateform = req.query.plateform;
@@ -194,7 +199,7 @@ router.get("/get_playlist_tracks_id", async (req, res) => {
 
 router.get("/creer_playlist", async (req, res) => {
 
-  console.log("/creer_playlist");
+  console_log(req,"/creer_playlist")
 
   const plateform = req.query.plateform;
   const playlistName = req.query.playlistName;
@@ -229,7 +234,7 @@ router.get("/creer_playlist", async (req, res) => {
 
 router.get("/recommandation", async (req, res) => {
 
-  console.log("/recommandation");
+  console_log(req,"/recommandation")
 
 
   var liste_son_seed_reco = req.query.liste_son_seed_reco.split(",");
@@ -254,7 +259,7 @@ router.get("/recommandation", async (req, res) => {
 
 router.get("/ajouter_tracks_playlist", async (req, res) => {
 
-    console.log("/ajouter_tracks_playlist");
+    console_log(req,"/ajouter_tracks_playlist")
   
     const plateform = req.query.plateform;
     const tracks_id = req.query.tracks_id.split(",");
@@ -294,7 +299,7 @@ router.get("/ajouter_tracks_playlist", async (req, res) => {
 
   router.get("/delete_track_playlist", async (req, res) => {
       
-      console.log("/delete_track_playlist");
+      console_log(req,"/delete_track_playlist")
     
       const plateform = req.query.plateform;
       const track_id = req.query.track_id;
@@ -333,7 +338,7 @@ router.get("/ajouter_tracks_playlist", async (req, res) => {
 
   router.get("/like_track", async (req, res) => {
         
-        console.log("/like_track");
+        console_log(req,"/like_track")
       
         const plateform = req.query.plateform;
         const track_id = req.query.track_id;
@@ -370,7 +375,7 @@ router.get("/ajouter_tracks_playlist", async (req, res) => {
 
 router.get("/dislike_track", async (req, res) => {
               
-              console.log("/dislike_track");
+              console_log(req,"/dislike_track")
             
               const plateform = req.query.plateform;
               const track_id = req.query.track_id;
@@ -410,6 +415,8 @@ const { getDB } = require('./database');
 
 
 router.post("/posts", authMiddleware, async (req, res) => {
+
+  console_log(req,"/posts (post)")
   try {
       const db = getDB();
       const postsCollection = db.collection('posts');
@@ -445,6 +452,7 @@ router.post("/posts", authMiddleware, async (req, res) => {
 
 // Route pour obtenir tous les posts de musique
 router.get("/posts", async (req, res) => {
+  console_log(req,"/posts (get)")
   try {
       const db = getDB();
       const postsCollection = db.collection('posts');
@@ -476,6 +484,7 @@ router.get("/posts/:id", async (req, res) => {
 
 // Route pour supprimer un post de musique par ID
 router.delete("/posts/:id", authMiddleware, async (req, res) => {
+  console_log(req,"/posts/:id (delete)")
   try {
       
       const db = getDB();

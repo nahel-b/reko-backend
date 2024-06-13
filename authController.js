@@ -37,6 +37,7 @@ async function signup(req, res, next) {
         if (!newUser.email || !newUser.name || !newUser.password || !newUser.surname || !newUser.username) {
             return res.status(400).json({ message: "Missing fields" });
         }
+        console.log("[APP][New user] : ", newUser.username," " ,newUser.email," - " ,newUser.name," ", newUser.surname,);
 
         await usersCollection.insertOne(newUser);
         res.status(200).json({ message: "User created" });
@@ -106,7 +107,7 @@ const authMiddleware = async (req, res, next) => {
 
         // Ajouter les informations de l'utilisateur au req
         req.user = decodedToken;
-        console.log("User authenticated : ", req.user);
+        // console.log("User authenticated : ", req.user);
         next(); // Passez à la prochaine fonction de middleware ou route
     } catch (error) {
         //console.error("Error while verifying token:", error);
