@@ -5,6 +5,7 @@ const spotify_serveur = require("./musique/spotify_serveur.js");
 const spotify_client = require("./musique/spotify_client.js");
 const deezer_client = require("./musique/deezer_client.js");
 
+
 const { login, signup,authMiddleware,deleteAccount } = require("./authController.js");
 const { createPost} = require("./post.js");
 const { platform } = require("os");
@@ -13,6 +14,14 @@ router.get("/public", async (req, res) => {
   res.json({ message: "Hello from a public endpoint! You don't need to be authenticated to see this." });
 });
 
+
+const minimal_version = process.env.minimal_version;
+
+
+router.get('/minimal_version', (req, res) => {
+
+  res.json( minimal_version );
+});
 
 router.post('/login', login);
 
