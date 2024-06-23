@@ -69,12 +69,9 @@ async function getDeezerPlaylist(playlistId, user_token) {
                   return resolve(null);
               }
 
-              const nm = playlist.title.toLowerCase();
-              const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm;
-              const pic = [playlist.picture_small, playlist.picture_medium, playlist.picture_big];
-              const id = playlist.id;
+              
 
-              resolve({ name, pic, id });
+              resolve( playlist );
           })
           .catch(error => {
               console.log("erreur ds getdeezerplaylist :" + error.message);

@@ -127,18 +127,17 @@ async function getSpotifyPlaylistTracksId(playlist_id,token,refresh_token){
   return {reponse : res, token: resp.token, refresh_token: resp.refresh_token,platform: "Spotify"}
 }
 
-async function getSpotifyPlaylist(id_pl,username){
+async function getSpotifyPlaylist(playlist_id,token,refresh_token){
 
-  let url = `https://api.spotify.com/v1/playlists/${id_pl}`
-  let resp = await requete(url,null,"GET",username)
+  let url = `https://api.spotify.com/v1/playlists/${playlist_id}`
+  let resp = await requete(url,null,"GET","",{},1,token,refresh_token)
   if(resp[0] == -1) {console.log("[ERR] erreur lors de la recuperation de la playlist :" + resp[1]);return -1;}
-  let playlist = resp
-  const nm = playlist.name.toLowerCase()
-  const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
-  const img_vide = "https://e-cdns-images.dzcdn.net/images/cover/d41d8cd98f00b204e9800998ecf8427e/528x528-000000-80-0-0.jpg"
-  const pic = playlist.images ? playlist.images[0] ? [playlist.images[0].url] : [img_vide] : [img_vide] ;
-  const id = playlist.id
-  return {name,pic,id}
+  // const nm = playlist.name.toLowerCase()
+  // const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
+  // const img_vide = "https://e-cdns-images.dzcdn.net/images/cover/d41d8cd98f00b204e9800998ecf8427e/528x528-000000-80-0-0.jpg"
+  // const pic = playlist.images ? playlist.images[0] ? [playlist.images[0].url] : [img_vide] : [img_vide] ;
+  // const id = playlist.id
+  return {reponse : resp.reponse, token: resp.token, refresh_token: resp.refresh_token,platform: "Spotify"}
 }
 
 

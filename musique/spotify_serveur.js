@@ -318,6 +318,29 @@ async function liste_d_to_s(deezerIds) {
   return spotifyIds;
 }
 
+async function available_genre_seeds() {
+  let spotify_server_token = await get_spotify_server_token();
+  return new Promise((resolve, reject) => {
+    const headers = {
+      Authorization: `Bearer ${spotify_server_token}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    };
+
+    axios.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', { headers })
+      .then(response => {
+        if (response.status === 200) {
+          resolve(response.data.genres);
+        } else {
+          resolve(-1);
+        }
+      })
+      .catch(error => {
+        resolve(-1);
+      });
+  });
+}
+
 
 
 // async function addAutoTracks(playlist_id,seed,number,access_token,platform)
@@ -353,4 +376,4 @@ async function liste_d_to_s(deezerIds) {
 
 
 
-module.exports ={get_spotify_server_token,isTokenValid,demande_id,s_to_d,liste_s_to_d,d_to_s,liste_d_to_s,envoie_recherche_musique,recommandation,envoie_recherche_musique_precis}
+module.exports ={available_genre_seeds,get_spotify_server_token,isTokenValid,demande_id,s_to_d,liste_s_to_d,d_to_s,liste_d_to_s,envoie_recherche_musique,recommandation,envoie_recherche_musique_precis}

@@ -112,6 +112,7 @@ router.get("/user_playlist", async (req, res) => {
     if(donnee == -1){
       return res.json({reponse : []});
     }
+
     const transformedPlaylists = donnee.reponse.map((playlist) => {
       return  {
 
@@ -119,7 +120,8 @@ router.get("/user_playlist", async (req, res) => {
           name: playlist.name,
           image: playlist.images ? (playlist.images[0] ? playlist.images[0].url : null) : null,
           nb_tracks: playlist.tracks.total,
-          platform: "Spotify"
+          platform: "Spotify",
+          tracks: playlist.tracks.items
       };
     });
     return res.json({reponse : transformedPlaylists, token: donnee.token, refresh_token: donnee.refresh_token,platform: "Spotify"});
@@ -130,6 +132,7 @@ router.get("/user_playlist", async (req, res) => {
     if(donnee == -1|| donnee == undefined|| donnee == null){
       return res.json({reponse : []});
     }
+    console.log("donnee",donnee);
     const transformedPlaylists = donnee.map((playlist) => {
       return  {
 
@@ -137,6 +140,9 @@ router.get("/user_playlist", async (req, res) => {
           name: playlist.title,
           image: playlist.picture_medium ? playlist.picture_medium : null,
           nb_tracks: playlist.nb_tracks,
+          duration: playlist.duration,
+          link: playlist.link,
+          description : playlist.description,
           platform: "Deezer"
       };
   });
@@ -145,6 +151,67 @@ router.get("/user_playlist", async (req, res) => {
   }
 
 });
+
+
+router.get("/get_playlist_info", async (req, res) => {
+  
+    console_log(req,"/get_playlist_info")
+  
+    const playlistId = req.query.playlistId;
+    const token = req.query.token;
+    const refresh_token = req.query.refresh_token;
+    const plateform = req.query.plateform;
+  
+    
+    if ( !plateform || !token || (plateform == "Spotify" && !refresh_token) ) {
+      res.json(-1);
+    }
+    else if(plateform == "Spotify"){
+      if (!playlistId || !token || !refresh_token) {
+        res.json(-1);
+      } else {
+        const donnee = await spotify_client.getSpotifyPlaylist(playlistId,token,refresh_token);
+        if(donnee == -1){
+          return res.json({reponse : []});
+        }
+        const playlist = donnee.reponse;
+        const transformedPlaylists = {
+              id: playlist.id,
+              name: playlist.name,
+              image: playlist.images ? (playlist.images[0] ? playlist.images[0].url : null) : null,
+              nb_tracks: playlist.tracks.total,
+              duration: playlist.duration,
+              link: playlist.external_urls.spotify,
+              description : playlist.description,
+              platform: "Spotify",
+              tracks: playlist.tracks.items
+          };
+        
+        return res.json({reponse : transformedPlaylists, token: donnee.token, refresh_token: donnee.refresh_token,platform: "Spotify"});
+      }
+    }
+    else if(plateform == "Deezer"){
+      const donnee = await deezer_client.getDeezerPlaylist(playlistId,token);
+      if(donnee == -1 || donnee == undefined|| donnee == null){
+        return res.json({reponse : []});
+      }
+      const playlist = donnee;
+      const transformedPlaylists = {
+            id: playlist.id,
+            name: playlist.title,
+            image: playlist.picture_medium ? playlist.picture_medium : null,
+            nb_tracks: playlist.nb_tracks,
+            duration: playlist.duration,
+            link: playlist.link,
+            description : playlist.description,
+            tracks: playlist.tracks.data,
+            platform: "Deezer"
+        };
+      
+      return res.json({reponse : transformedPlaylists, token: null, refresh_token: null,platform: "Deezer"});
+    }
+  
+  });
 
 
 router.get("/get_playlist_tracks_id", async (req, res) => {
@@ -411,6 +478,7 @@ router.get("/dislike_track", async (req, res) => {
             });
 
 const { getDB } = require('./database');
+const { link } = require("fs");
 
 const allowPost = process.env.ALLOW_POST === 'true';
 
@@ -513,6 +581,21 @@ router.delete("/posts/:id", authMiddleware, async (req, res) => {
       res.status(500).json({ message: "Error while deleting post" });
   }
 });
+
+
+router.get("/available_genre_seeds", async (req, res) => {
+  console_log(req,"/available_genre_seeds")
+  // const donnee = await spotify_serveur.available_genre_seeds();
+  // if(donnee == -1){
+  //   return res.json([]);
+  // }
+
+let donnee =["acoustic", "afrobeat", "alt-rock", "alternative", "ambient", "anime", "black-metal", "bluegrass", "blues", "bossanova", "brazil", "breakbeat", "british", "cantopop", "chicago-house", "children", "chill", "classical", "club", "comedy", "country", "dance", "dancehall", "death-metal", "deep-house", "detroit-techno", "disco", "disney", "drum-and-bass", "dub", "dubstep", "edm", "electro", "electronic", "emo", "folk", "forro", "french", "funk", "garage", "german", "gospel", "goth", "grindcore", "groove", "grunge", "guitar", "happy", "hard-rock", "hardcore", "hardstyle", "heavy-metal", "hip-hop", "holidays", "honky-tonk", "house", "idm", "indian", "indie", "indie-pop", "industrial", "iranian", "j-dance", "j-idol", "j-pop", "j-rock", "jazz", "k-pop", "kids", "latin", "latino", "malay", "mandopop", "metal", "metal-misc", "metalcore", "minimal-techno", "movies", "mpb", "new-age", "new-release", "opera", "pagode", "party", "philippines-opm", "piano", "pop", "pop-film", "post-dubstep", "power-pop", "progressive-house", "psych-rock", "punk", "punk-rock", "r-n-b", "rainy-day", "reggae", "reggaeton", "road-trip", "rock", "rock-n-roll", "rockabilly", "romance", "sad", "salsa", "samba", "sertanejo", "show-tunes", "singer-songwriter", "ska", "sleep", "songwriter", "soul", "soundtracks", "spanish", "study", "summer", "swedish", "synth-pop", "tango", "techno", "trance", "trip-hop", "turkish", "work-out", "world-music"];
+
+  
+  return res.json({reponse : donnee, token: null, refresh_token: null,platform: null});
+}
+);
 
 
 module.exports = router;
