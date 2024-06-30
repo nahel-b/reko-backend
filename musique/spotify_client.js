@@ -165,6 +165,13 @@ async function dislikeSpotifyTrack(track_id,token,refresh_token){
   return resp;
 }
 
+async function deleteSpotifyPlaylist(playlist_id,token,refresh_token){
+
+  let url = `https://api.spotify.com/v1/playlists/${playlist_id}`
+  let resp = await requete(url,null,"DELETE","",{},1,token,refresh_token)
+  return resp;
+}
 
 
-module.exports ={getRecentSpotifyPlaylists,createSpotifyPlaylist,getSpotifyPlaylistTracksId,addTracksToSpotifyPlaylist,getSpotifyPlaylist,get_user_spotify_id,deleteSpotifyTrackPlaylist,likeSpotifyTrack,dislikeSpotifyTrack}
+
+module.exports ={deleteSpotifyPlaylist,getRecentSpotifyPlaylists,createSpotifyPlaylist,getSpotifyPlaylistTracksId,addTracksToSpotifyPlaylist,getSpotifyPlaylist,get_user_spotify_id,deleteSpotifyTrackPlaylist,likeSpotifyTrack,dislikeSpotifyTrack}

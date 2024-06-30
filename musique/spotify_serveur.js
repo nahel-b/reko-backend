@@ -36,13 +36,13 @@ async function envoie_recherche_musique(demande, offset,limit =3) {
   }
 }
 
-async function envoie_recherche_musique_precis(demande, offset,limit =3) {
+async function envoie_recherche_musique_precis(demande, offset,limit =3, needPreview = true) {
   try {
   let res = []
   req = await demande_id( demande, offset,1,limit);
 
   req.forEach(track => {
-    if (track.preview_url) {
+    if (track.preview_url || !needPreview) {
         res.push({
             image_urls: track.album.images.map(image => image.url),
             titre: track.name,
@@ -66,11 +66,29 @@ async function envoie_recherche_musique_precis(demande, offset,limit =3) {
 }
 
 //id spotify to musique reco
-async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant = 1) {
+async function recommandation(liste_son_seed_reco, offset, limit,genres,plusValue, essaie_restant = 1) {
   let spotify_server_token = await get_spotify_server_token();
   
   return new Promise((resolve, reject) => {
-      const params = { seed_tracks: liste_son_seed_reco.join(','), limit, market: 'FR', offset };
+      const params = {  limit, market: 'FR', offset,
+      ...plusValue };
+      
+      if (genres == null) {
+        params.seed_tracks = liste_son_seed_reco.join(',');
+      } else {
+        params.seed_genres = genres;
+      }
+
+      // if(genres == null || genres == "" || genres == undefined || genres == "undefined" || genres == [] || genres == "")
+      // {
+      //   delete params.seed_genres
+      // }
+      // if(liste_son_seed_reco == null || liste_son_seed_reco == "" || liste_son_seed_reco == undefined || liste_son_seed_reco == "undifined"  || liste_son_seed_reco == [])
+      // {
+      //   delete params.seed_tracks
+      // }
+      
+      console.log("ppp",params)
       const headers = {
           Authorization: `Bearer ${spotify_server_token}`,
           'Content-Type': 'application/json'
@@ -100,7 +118,7 @@ async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant
                   resolve(liste_reco_res);
               } else {
                   if (essaie_restant > 0) {
-                      recommandation(liste_son_seed_reco, offset, limit, essaie_restant - 1)
+                      recommandation(liste_son_seed_reco, offset, limit,genres,plusValue, essaie_restant - 1)
                           .then(resolve)
                           .catch(reject);
                   } else {
@@ -111,7 +129,7 @@ async function recommandation(liste_son_seed_reco, offset, limit, essaie_restant
           })
           .catch(error => {
               if (essaie_restant > 0) {
-                  recommandation(liste_son_seed_reco, offset, limit, essaie_restant - 1)
+                  recommandation(liste_son_seed_reco, offset, limit,genres,plusValue, essaie_restant - 1)
                       .then(resolve)
                       .catch(reject);
               } else {

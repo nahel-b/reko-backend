@@ -76,7 +76,7 @@ router.get("/recherche_precis", async (req, res) => {
   const song_name = req.query.song_name;
   const offset = req.query.offset;
   const limit = req.query.limit !== undefined ? req.query.limit : 3;
-
+  const needPreview = req.query.needPreview ||true;
 
   if (!song_name || !offset) {
     res.json(-1);
@@ -85,6 +85,7 @@ router.get("/recherche_precis", async (req, res) => {
       song_name,
       offset,
       limit,
+      needPreview
     );
     if(donnee == -1){
       return res.json([]);
@@ -132,7 +133,6 @@ router.get("/user_playlist", async (req, res) => {
     if(donnee == -1|| donnee == undefined|| donnee == null){
       return res.json({reponse : []});
     }
-    console.log("donnee",donnee);
     const transformedPlaylists = donnee.map((playlist) => {
       return  {
 
@@ -304,18 +304,22 @@ router.get("/recommandation", async (req, res) => {
   console_log(req,"/recommandation")
 
 
-  var liste_son_seed_reco = req.query.liste_son_seed_reco.split(",");
+  var liste_son_seed_reco =req.query.liste_son_seed_reco ? req.query.liste_son_seed_reco.split(",") : null;
   const offset = req.query.offset;
   const limit = req.query.limit !== undefined ? req.query.limit : 50;
+  const genres = req.query.genres || null;
+  const plusValue = JSON.parse( req.query.plusValue) || null;
 
-  if(!liste_son_seed_reco || !offset  ){
+  if((!liste_son_seed_reco && !genres) || !offset  ){
     return res.json(-1);
   }
 
   const donnee = await spotify_serveur.recommandation(
     liste_son_seed_reco,
     offset,
-    limit
+    limit,
+    genres,
+    plusValue
   );
   if(donnee == -1){
     return res.json({reponse : []});
@@ -402,6 +406,7 @@ router.get("/ajouter_tracks_playlist", async (req, res) => {
     
     });
 
+  
 
   router.get("/like_track", async (req, res) => {
         
@@ -597,5 +602,42 @@ let donnee =["acoustic", "afrobeat", "alt-rock", "alternative", "ambient", "anim
 }
 );
 
+router.get("/delete_playlist", async (req, res) => {
+          
+  console_log(req,"/delete_playlist")
+
+  const plateform = req.query.plateform;
+  const playlist_id = req.query.playlist_id;
+  const token = req.query.token;
+  const refresh_token = req.query.refresh_token;
+
+  if ( !plateform || !token || (plateform == "Spotify" && !refresh_token) ) {
+    res.json(-1);
+  } else if(plateform == "Spotify"){
+
+    const donnee = await spotify_client.deleteSpotifyPlaylist(playlist_id,token,refresh_token);
+    if(donnee == -1){
+      return res.json(-1);
+    }
+    return res.json({reponse : donnee.reponse, token: donnee.token, refresh_token: donnee.refresh_token,platform: "Spotify"});
+
+  }
+  else if(plateform == "Deezer"){
+
+    const donnee = await deezer_client.deleteDeezerPlaylist(playlist_id,token);
+    if(donnee == -1){
+      return res.json(-1);
+    }
+    return res.json({reponse : donnee, token: null, refresh_token: null,platform: "Deezer"});
+
+  }
+
+});
+
+// le reste des routes
+router.get("*", (req, res) => {
+  console.log("route",req.url,"not found")
+  res.status(404).json({ message: "Route not found" });
+});
 
 module.exports = router;
