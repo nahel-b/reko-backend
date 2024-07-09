@@ -113,7 +113,7 @@ router.get("/user_playlist", async (req, res) => {
     if(donnee == -1){
       return res.json({reponse : []});
     }
-    const transformedPlaylists = []
+    let transformedPlaylists = []
     if(donnee.reponse){
      transformedPlaylists = donnee.reponse.map((playlist) => {
       return  {
