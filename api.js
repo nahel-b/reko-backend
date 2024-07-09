@@ -115,7 +115,7 @@ router.get("/user_playlist", async (req, res) => {
     }
     const transformedPlaylists = []
     if(donnee.reponse){
-    const transformedPlaylists = donnee.reponse.map((playlist) => {
+     transformedPlaylists = donnee.reponse.map((playlist) => {
       return  {
 
           id: playlist.id,
