@@ -113,7 +113,8 @@ router.get("/user_playlist", async (req, res) => {
     if(donnee == -1){
       return res.json({reponse : []});
     }
-
+    const transformedPlaylists = []
+    if(donnee.reponse){
     const transformedPlaylists = donnee.reponse.map((playlist) => {
       return  {
 
@@ -125,6 +126,7 @@ router.get("/user_playlist", async (req, res) => {
           tracks: playlist.tracks.items
       };
     });
+    }
     return res.json({reponse : transformedPlaylists, token: donnee.token, refresh_token: donnee.refresh_token,platform: "Spotify"});
 
   }
