@@ -58,6 +58,10 @@ async function requete(url, body, method, username, qs = {}, nb_essaie = 1, toke
   return new Promise((resolve, reject) => {
       axios(options)
           .then(response => {
+            
+                  console.log('Response code:', response.status);
+                  
+              
               resolve({ reponse: response.data, token: null, refresh_token: null, platform: "Spotify" });
           })
           .catch(async error => {
