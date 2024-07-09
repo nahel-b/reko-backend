@@ -59,7 +59,7 @@ async function requete(url, body, method, username, qs = {}, nb_essaie = 1, toke
       axios(options)
           .then(response => {
             
-                  console.log('Response code:', response);
+                  console.log('Response code:', response.data);
                   
               
               resolve({ reponse: response.data, token: null, refresh_token: null, platform: "Spotify" });
